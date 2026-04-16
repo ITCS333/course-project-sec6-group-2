@@ -8,6 +8,7 @@
   3. All data is fetched from and written to the PHP API at '../api/index.php'.
      The local 'users' array is used only as a client-side cache for search and sort.
 */
+const API_BASE_URL = "../api/index.php";
 
 // --- Element Selections ---
 const userTableBody = document.getElementById("user-table-body");
