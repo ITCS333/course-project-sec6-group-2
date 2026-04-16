@@ -11,6 +11,11 @@
   3. Implement the JavaScript functionality as described in the TODO comments.
 */
 
+const loginForm = document.getElementById("login-form");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const messageContainer = document.getElementById("message-container");
+
 // --- Element Selections ---
 // We can safely select elements here because 'defer' guarantees
 // the HTML document is parsed before this script runs.
@@ -36,8 +41,12 @@
  * 2. Set the class name of `messageContainer` to `type`
  * (this will allow for CSS styling of 'success' and 'error' states).
  */
-function displayMessage(message, type) {
+
   // ... your implementation here ...
+
+function displayMessage(message, type) {
+  messageContainer.textContent = message;
+  messageContainer.className = type;
 }
 
 /**
@@ -52,8 +61,12 @@ function displayMessage(message, type) {
  *
  * A simple regex for this purpose is: /\S+@\S+\.\S+/
  */
-function isValidEmail(email) {
+
   // ... your implementation here ...
+
+function isValidEmail(email) {
+  const emailRegex = /\S+@\S+\.\S+/;
+  return emailRegex.test(email);
 }
 
 /**
@@ -66,8 +79,11 @@ function isValidEmail(email) {
  * 2. Return `true` if the password is valid.
  * 3. Return `false` if the password is not valid.
  */
-function isValidPassword(password) {
+
   // ... your implementation here ...
+
+function isValidPassword(password) {
+  return password.length >= 8;
 }
 
 /**
@@ -84,8 +100,48 @@ function isValidPassword(password) {
  * - Call `displayMessage("Login successful!", "success")`.
  * - (Optional) Clear the email and password input fields.
  */
-function handleLogin(event) {
+
   // ... your implementation here ...
+
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!isValidEmail(email)) {
+    displayMessage("Invalid email format.", "error");
+    return;
+  }
+
+  if (!isValidPassword(password)) {
+    displayMessage("Password must be at least 8 characters.", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch("./api/index.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      displayMessage("Login successful!", "success");
+    } else {
+      displayMessage(result.message, "error");
+    }
+
+  } catch (error) {
+    displayMessage("Server error. Try again.", "error");
+  }
 }
 
 /**
@@ -96,8 +152,13 @@ function handleLogin(event) {
  * 2. If it exists, add a "submit" event listener to it.
  * 3. The event listener should call the `handleLogin` function.
  */
-function setupLoginForm() {
+
   // ... your implementation here ...
+
+function setupLoginForm() {
+  if (loginForm) {
+    loginForm.addEventListener("submit", handleLogin);
+  }
 }
 
 // --- Initial Page Load ---
