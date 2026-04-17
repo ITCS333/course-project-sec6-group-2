@@ -11,11 +11,7 @@
 const API_BASE_URL = "../api/index.php";
 
 // --- Element Selections ---
-const userTableBody = document.getElementById("user-table-body");
-const searchInput = document.getElementById("search-input");
-const addUserForm = document.getElementById("add-user-form");
-const passwordForm = document.getElementById("password-form");
-const tableHeaders = document.querySelectorAll("#user-table thead th");
+
 
 // --- Global Data Store ---
 // This array will be populated with data fetched from the PHP API.
