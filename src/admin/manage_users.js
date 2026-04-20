@@ -134,7 +134,7 @@ async function handleChangePassword(event) {
     }
 
     try {
-        const response = await fetch("../api/index.php?action=change_password", {
+        const response = await fetch("../api/index.php", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -249,7 +249,7 @@ async function handleTableClick(event) {
         }
 
         try {
-            const response = await fetch(`../api/index.php?id=${userId}`, {
+            const response = await fetch("../api/index.php", {
                 method: "DELETE"
             });
 
