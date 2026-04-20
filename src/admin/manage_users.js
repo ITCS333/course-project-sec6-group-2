@@ -10,22 +10,23 @@
 */
 const API_BASE_URL = "../api/index.php";
 
-// --- Element Selections ---
 
+
+// --- Element Selections --
+// --- Element Selections ---
+// We can safely select elements here because 'defer' guarantees
+// the HTML document is parsed before this script runs.
 const userTableBody = document.getElementById("user-table-body");
-const searchInput = document.getElementById("search-input");
 const addUserForm = document.getElementById("add-user-form");
 const passwordForm = document.getElementById("password-form");
+const searchInput = document.getElementById("search-input");
 const tableHeaders = document.querySelectorAll("#user-table thead th");
+
 
 // --- Global Data Store ---
 // This array will be populated with data fetched from the PHP API.
 // It acts as a client-side cache so search and sort work without extra network calls.
 let users = [];
-
-// --- Element Selections ---
-// We can safely select elements here because 'defer' guarantees
-// the HTML document is parsed before this script runs.
 
 // TODO: Select the user table body element with id="user-table-body".
 
@@ -52,6 +53,7 @@ let users = [];
  */
 function createUserRow(user) {
     const tr = document.createElement("tr");
+
     const nameTd = document.createElement("td");
     nameTd.textContent = user.name;
 
@@ -59,7 +61,7 @@ function createUserRow(user) {
     emailTd.textContent = user.email;
 
     const adminTd = document.createElement("td");
-    adminTd.textContent = user.is_admin == 1 ? "Yes" : "No";
+    adminTd.textContent = Number(user.is_admin) === 1 ? "Yes" : "No";
 
     const actionsTd = document.createElement("td");
 
@@ -85,6 +87,24 @@ function createUserRow(user) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * TODO: Implement the renderTable function.
  * This function takes an array of user objects.
@@ -93,13 +113,27 @@ function createUserRow(user) {
  * 2. Loop through the provided array of users.
  * 3. For each user, call createUserRow and append the returned <tr> to userTableBody.
  */
-function renderTable(users) {
+function renderTable(list) {
     userTableBody.innerHTML = "";
-    users.forEach(user => {
-        const userRow = createUserRow(user);
-        userTableBody.appendChild(userRow);
+    list.forEach(user => {
+        userTableBody.appendChild(createUserRow(user));
     });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * TODO: Implement the handleChangePassword function.
@@ -133,13 +167,22 @@ async function handleChangePassword(event) {
         return;
     }
 
+    // The logged-in admin's id is persisted by login.js to sessionStorage on success.
+    const loggedInUserId = sessionStorage.getItem("userId");
+    if (!loggedInUserId) {
+        alert("You are not logged in. Please log in again.");
+        return;
+    }
+
     try {
-        const response = await fetch("../api/index.php", {
+        const response = await fetch(`${API_BASE_URL}?action=change_password`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ id: loggedInUserId, current_password: currentPassword, new_password: newPassword })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: Number(loggedInUserId),
+                current_password: currentPassword,
+                new_password: newPassword
+            })
         });
 
         const result = await response.json();
@@ -150,7 +193,6 @@ async function handleChangePassword(event) {
         }
 
         alert("Password updated successfully!");
-
         document.getElementById("current-password").value = "";
         document.getElementById("new-password").value = "";
         document.getElementById("confirm-password").value = "";
@@ -159,6 +201,23 @@ async function handleChangePassword(event) {
         alert("Failed to update password");
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * TODO: Implement the handleAddUser function.
@@ -195,12 +254,10 @@ async function handleAddUser(event) {
     }
 
     try {
-        const response = await fetch("../api/index.php", {
+        const response = await fetch(API_BASE_URL, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ name, email, password, is_admin: isAdmin })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password, is_admin: Number(isAdmin) })
         });
 
         const result = await response.json();
@@ -210,8 +267,7 @@ async function handleAddUser(event) {
             return;
         }
 
-        alert("User added successfully!");
-        loadUsersAndInitialize();
+        await loadUsersAndInitialize();
 
         document.getElementById("user-name").value = "";
         document.getElementById("user-email").value = "";
@@ -222,6 +278,31 @@ async function handleAddUser(event) {
         alert("Failed to add user");
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * TODO: Implement the handleTableClick function.
@@ -244,15 +325,12 @@ async function handleTableClick(event) {
     if (target.classList.contains("delete-btn")) {
         const userId = target.dataset.id;
 
-        if (!confirm("Are you sure you want to delete this user?")) {
-            return;
-        }
+        if (!confirm("Are you sure you want to delete this user?")) return;
 
         try {
-            const response = await fetch("../api/index.php", {
+            const response = await fetch(`${API_BASE_URL}?id=${userId}`, {
                 method: "DELETE"
             });
-
             const result = await response.json();
 
             if (!result.success) {
@@ -260,23 +338,78 @@ async function handleTableClick(event) {
                 return;
             }
 
-            users = users.filter(user => user.id != userId);
+            users = users.filter(u => String(u.id) !== String(userId));
             renderTable(users);
         } catch (error) {
             console.error(error);
             alert("Error deleting user");
         }
+        return;
     }
 
-    // Handle edit-btn clicks here (optional)
     if (target.classList.contains("edit-btn")) {
         const userId = target.dataset.id;
-        // Implement edit functionality here
-        alert(`Edit user with ID: ${userId}`);
+        const current = users.find(u => String(u.id) === String(userId));
+        if (!current) return;
+
+        const newName = prompt("Name:", current.name);
+        if (newName === null) return;
+        const newEmail = prompt("Email:", current.email);
+        if (newEmail === null) return;
+        const newIsAdmin = prompt("Admin? (0 = No, 1 = Yes):", current.is_admin);
+        if (newIsAdmin === null) return;
+
+        try {
+            const response = await fetch(API_BASE_URL, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: Number(userId),
+                    name: newName.trim(),
+                    email: newEmail.trim(),
+                    is_admin: Number(newIsAdmin)
+                })
+            });
+            const result = await response.json();
+
+            if (!result.success) {
+                alert(result.message || "Failed to update user");
+                return;
+            }
+
+            await loadUsersAndInitialize();
+        } catch (error) {
+            console.error(error);
+            alert("Error updating user");
+        }
     }
-
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * TODO: Implement the handleSearch function.
@@ -290,20 +423,69 @@ async function handleTableClick(event) {
  *    (This filters the client-side cache only; no extra API call is needed.)
  */
 function handleSearch() {
-    const searchTerm = searchInput.value.trim().toLowerCase();
+    const term = searchInput.value.trim().toLowerCase();
 
-    if (!searchTerm) {
+    if (!term) {
         renderTable(users);
         return;
     }
 
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm)
+    const filtered = users.filter(u =>
+        u.name.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term)
     );
-
-    renderTable(filteredUsers);
+    renderTable(filtered);
 }
+
+/**
+ * Sorts the cached users array by the clicked column and re-renders.
+ */
+function handleSort(event) {
+    const th = event.currentTarget;
+    const columnIndex = Array.from(tableHeaders).indexOf(th);
+    const sortKeys = ["name", "email", "is_admin"];
+    const sortKey = sortKeys[columnIndex];
+
+    if (!sortKey) return;
+
+    const newDir = th.dataset.sortDir === "asc" ? "desc" : "asc";
+    th.dataset.sortDir = newDir;
+
+    users.sort((a, b) => {
+        let cmp;
+        if (sortKey === "is_admin") {
+            cmp = Number(a[sortKey]) - Number(b[sortKey]);
+        } else {
+            cmp = String(a[sortKey]).localeCompare(String(b[sortKey]));
+        }
+        return newDir === "asc" ? cmp : -cmp;
+    });
+
+    renderTable(users);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * TODO: Implement the handleSort function.
@@ -323,31 +505,66 @@ function handleSearch() {
  * 6. Call renderTable(users) to update the view.
  */
 function handleSort(event) {
-    const th = event.currentTarget;
-    const columnIndex = Array.from(tableHeaders).indexOf(th);
-    const sortKeys = ["name", "email", "is_admin"];
-    const sortKey = sortKeys[columnIndex];
-
-    if (!sortKey) return;
-
-    const currentDir = th.dataset.sortDir || "asc";
-    const newDir = currentDir === "asc" ? "desc" : "asc";
-    th.dataset.sortDir = newDir;
-
-    users.sort((a, b) => {
-        let comparison = 0;
-
-        if (sortKey === "is_admin") {
-            comparison = a[sortKey] - b[sortKey];
-        } else {
-            comparison = a[sortKey].localeCompare(b[sortKey]);
-        }
-
-        return newDir === "asc" ? comparison : -comparison;
+    const th    = event.currentTarget;
+    const index = th.cellIndex;
+ 
+    const columnMap = { 0: 'name', 1: 'email', 2: 'is_admin' };
+    const property  = columnMap[index];
+ 
+    // The "Actions" column isn't sortable.
+    if (!property) return;
+ 
+    // Toggle direction; default to 'asc' on first click.
+    const newDir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
+ 
+    // Clear direction on every other header so only one is marked at a time.
+    tableHeaders.forEach(header => {
+        if (header !== th) delete header.dataset.sortDir;
     });
-
+    th.dataset.sortDir = newDir;
+ 
+    users.sort((a, b) => {
+        let cmp;
+        if (property === 'is_admin') {
+            cmp = Number(a.is_admin) - Number(b.is_admin);
+        } else {
+            cmp = String(a[property]).localeCompare(String(b[property]));
+        }
+        return newDir === 'asc' ? cmp : -cmp;
+    });
+ 
     renderTable(users);
 }
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * TODO: Implement the loadUsersAndInitialize function.
@@ -368,10 +585,12 @@ function handleSort(event) {
  */
 async function loadUsersAndInitialize() {
     try {
-        const response = await fetch("../api/index.php");
+        const response = await fetch(API_BASE_URL);
 
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            console.error(`HTTP error: ${response.status}`);
+            alert("Failed to load users");
+            return;
         }
 
         const result = await response.json();
@@ -389,11 +608,7 @@ async function loadUsersAndInitialize() {
             addUserForm.addEventListener("submit", handleAddUser);
             userTableBody.addEventListener("click", handleTableClick);
             searchInput.addEventListener("input", handleSearch);
-
-            tableHeaders.forEach(th => {
-                th.addEventListener("click", handleSort);
-            });
-
+            tableHeaders.forEach(th => th.addEventListener("click", handleSort));
             loadUsersAndInitialize._listenersAttached = true;
         }
     } catch (error) {
@@ -402,5 +617,29 @@ async function loadUsersAndInitialize() {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // --- Initial Page Load ---
 loadUsersAndInitialize();
+
+
+
+
+
