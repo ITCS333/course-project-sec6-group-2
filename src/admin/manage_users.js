@@ -12,6 +12,11 @@ const API_BASE_URL = "../api/index.php";
 
 // --- Element Selections ---
 
+const userTableBody = document.getElementById("user-table-body");
+const searchInput = document.getElementById("search-input");
+const addUserForm = document.getElementById("add-user-form");
+const passwordForm = document.getElementById("password-form");
+const tableHeaders = document.querySelectorAll("#user-table thead th");
 
 // --- Global Data Store ---
 // This array will be populated with data fetched from the PHP API.
@@ -129,12 +134,12 @@ async function handleChangePassword(event) {
     }
 
     try {
-        const response = await fetch("./api/index.php?action=change_password", {
+        const response = await fetch("../api/index.php?action=change_password", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ id: 1, current_password: currentPassword, new_password: newPassword })
+            body: JSON.stringify({ id: loggedInUserId, current_password: currentPassword, new_password: newPassword })
         });
 
         const result = await response.json();
@@ -190,7 +195,7 @@ async function handleAddUser(event) {
     }
 
     try {
-        const response = await fetch("./api/index.php", {
+        const response = await fetch("../api/index.php", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -244,7 +249,7 @@ async function handleTableClick(event) {
         }
 
         try {
-            const response = await fetch(`./api/index.php?id=${userId}`, {
+            const response = await fetch(`../api/index.php?id=${userId}`, {
                 method: "DELETE"
             });
 
@@ -363,7 +368,7 @@ function handleSort(event) {
  */
 async function loadUsersAndInitialize() {
     try {
-        const response = await fetch("./api/index.php");
+        const response = await fetch("../api/index.php");
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
