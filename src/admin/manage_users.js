@@ -437,42 +437,6 @@ function handleSearch() {
     renderTable(filtered);
 }
 
-/**
- * Sorts the cached users array by the clicked column and re-renders.
- */
-function handleSort(event) {
-    const th = event.currentTarget;
-    const columnIndex = Array.from(tableHeaders).indexOf(th);
-    const sortKeys = ["name", "email", "is_admin"];
-    const sortKey = sortKeys[columnIndex];
-
-    if (!sortKey) return;
-
-    const newDir = th.dataset.sortDir === "asc" ? "desc" : "asc";
-    th.dataset.sortDir = newDir;
-
-    users.sort((a, b) => {
-        let cmp;
-        if (sortKey === "is_admin") {
-            cmp = Number(a[sortKey]) - Number(b[sortKey]);
-        } else {
-            cmp = String(a[sortKey]).localeCompare(String(b[sortKey]));
-        }
-        return newDir === "asc" ? cmp : -cmp;
-    });
-
-    renderTable(users);
-}
-
-
-
-
-
-
-
-
-
-
 
 
 
