@@ -10,33 +10,19 @@
 */
 const API_BASE_URL = "../api/index.php";
 
-
-
-// --- Element Selections --
 // --- Element Selections ---
 // We can safely select elements here because 'defer' guarantees
 // the HTML document is parsed before this script runs.
 const userTableBody = document.getElementById("user-table-body");
-const addUserForm = document.getElementById("add-user-form");
-const passwordForm = document.getElementById("password-form");
-const searchInput = document.getElementById("search-input");
-const tableHeaders = document.querySelectorAll("#user-table thead th");
-
+const addUserForm   = document.getElementById("add-user-form");
+const passwordForm  = document.getElementById("password-form");
+const searchInput   = document.getElementById("search-input");
+const tableHeaders  = document.querySelectorAll("#user-table thead th");
 
 // --- Global Data Store ---
 // This array will be populated with data fetched from the PHP API.
 // It acts as a client-side cache so search and sort work without extra network calls.
 let users = [];
-
-// TODO: Select the user table body element with id="user-table-body".
-
-// TODO: Select the "Add User" form with id="add-user-form".
-
-// TODO: Select the "Change Password" form with id="password-form".
-
-// TODO: Select the search input field with id="search-input".
-
-// TODO: Select all table header (th) elements inside the thead of id="user-table".
 
 // --- Functions ---
 
@@ -86,25 +72,6 @@ function createUserRow(user) {
     return tr;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * TODO: Implement the renderTable function.
  * This function takes an array of user objects.
@@ -119,21 +86,6 @@ function renderTable(list) {
         userTableBody.appendChild(createUserRow(user));
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * TODO: Implement the handleChangePassword function.
@@ -154,7 +106,7 @@ async function handleChangePassword(event) {
     event.preventDefault();
 
     const currentPassword = document.getElementById("current-password").value.trim();
-    const newPassword = document.getElementById("new-password").value.trim();
+    const newPassword     = document.getElementById("new-password").value.trim();
     const confirmPassword = document.getElementById("confirm-password").value.trim();
 
     if (newPassword !== confirmPassword) {
@@ -202,23 +154,6 @@ async function handleChangePassword(event) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * TODO: Implement the handleAddUser function.
  * This function is called when the "Add User" form is submitted.
@@ -238,10 +173,10 @@ async function handleChangePassword(event) {
 async function handleAddUser(event) {
     event.preventDefault();
 
-    const name = document.getElementById("user-name").value.trim();
-    const email = document.getElementById("user-email").value.trim();
+    const name     = document.getElementById("user-name").value.trim();
+    const email    = document.getElementById("user-email").value.trim();
     const password = document.getElementById("default-password").value.trim();
-    const isAdmin = document.getElementById("is-admin").value;
+    const isAdmin  = document.getElementById("is-admin").value;
 
     if (!name || !email || !password) {
         alert("Please fill out all required fields.");
@@ -278,31 +213,6 @@ async function handleAddUser(event) {
         alert("Failed to add user");
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * TODO: Implement the handleTableClick function.
@@ -385,32 +295,6 @@ async function handleTableClick(event) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * TODO: Implement the handleSearch function.
  * This function is called on the "input" event of the searchInput.
@@ -437,20 +321,6 @@ function handleSearch() {
     renderTable(filtered);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * TODO: Implement the handleSort function.
  * This function is called when any <th> in the thead is clicked.
@@ -471,22 +341,22 @@ function handleSearch() {
 function handleSort(event) {
     const th    = event.currentTarget;
     const index = th.cellIndex;
- 
+
     const columnMap = { 0: 'name', 1: 'email', 2: 'is_admin' };
     const property  = columnMap[index];
- 
+
     // The "Actions" column isn't sortable.
     if (!property) return;
- 
+
     // Toggle direction; default to 'asc' on first click.
     const newDir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
- 
+
     // Clear direction on every other header so only one is marked at a time.
     tableHeaders.forEach(header => {
         if (header !== th) delete header.dataset.sortDir;
     });
     th.dataset.sortDir = newDir;
- 
+
     users.sort((a, b) => {
         let cmp;
         if (property === 'is_admin') {
@@ -496,39 +366,9 @@ function handleSort(event) {
         }
         return newDir === 'asc' ? cmp : -cmp;
     });
- 
+
     renderTable(users);
 }
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * TODO: Implement the loadUsersAndInitialize function.
@@ -581,29 +421,5 @@ async function loadUsersAndInitialize() {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // --- Initial Page Load ---
 loadUsersAndInitialize();
-
-
-
-
-
