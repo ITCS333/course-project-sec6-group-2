@@ -63,6 +63,7 @@ const topicListContainer = document.getElementById("topic-list-container");
  *   column name.
  */
 function createTopicArticle(topic) {
+    // ... your implementation here ...
   const article = document.createElement("article");
 
   const h3 = document.createElement("h3");
@@ -106,6 +107,7 @@ function createTopicArticle(topic) {
  *    returned <article> to topicListContainer.
  */
 function renderTopics() {
+    // ... your implementation here ...
   topicListContainer.innerHTML = "";
 
   topics.forEach((topic) => {
@@ -134,6 +136,7 @@ function renderTopics() {
  *    - Reset the form.
  */
 async function handleCreateTopic(event) {
+    // ... your implementation here ...
   event.preventDefault();
 
   const subjectInput = document.getElementById("topic-subject");
@@ -196,6 +199,7 @@ async function handleCreateTopic(event) {
  *    - Call renderTopics() to refresh the list.
  */
 async function handleUpdateTopic(id, fields) {
+    // ... your implementation here ...
   const response = await fetch("./api/index.php", {
     method: "PUT",
     headers: {
@@ -240,6 +244,7 @@ async function handleUpdateTopic(id, fields) {
  *       and set its data-edit-id attribute to the topic's id.
  */
 async function handleTopicListClick(event) {
+    // ... your implementation here ...
   if (event.target.classList.contains("delete-btn")) {
     const id = parseInt(event.target.dataset.id, 10);
 
@@ -284,6 +289,7 @@ async function handleTopicListClick(event) {
  *    (calls handleTopicListClick — event delegation for edit and delete).
  */
 async function loadAndInitialize() {
+    // ... your implementation here ...
   const response = await fetch("./api/index.php");
   const result = await response.json();
 
