@@ -21,11 +21,11 @@ The website covers five functional areas, each assigned to one team member.
 
 | Task | Description | Student ID | GitHub Username |
 |------|-------------|------------|-----------------|
-| 1 | Home Page, Authentication & User Management | | |
-| 2 | Course Resources | | |
-| 3 | Weekly Breakdown | | |
-| 4 | Assignments | | |
-| 5 | Discussion Board | | |
+| 1 | Home Page, Authentication & User Management |202305859 |r23n |
+| 2 | Course Resources |202204010 |Hassan-cp |
+| 3 | Weekly Breakdown |202008213 |Khalid-git-cloud |
+| 4 | Assignments |202008213 |Khalid-git-cloud |
+| 5 | Discussion Board |202301203 |1ffocus |
 
 ---
 
