@@ -117,6 +117,5 @@ async function loadWeeks() {
     console.error("Error loading weeks:", error);
   }
 }
-
 // --- Initial Page Load ---
 loadWeeks();
