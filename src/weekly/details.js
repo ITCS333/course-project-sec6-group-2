@@ -268,6 +268,5 @@ async function initializePage() {
     weekTitle.textContent = "Week not found.";
   }
 }
-
 // --- Initial Page Load ---
 initializePage();
