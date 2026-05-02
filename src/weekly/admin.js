@@ -324,6 +324,5 @@ async function loadAndInitialize() {
   form.addEventListener("submit", handleAddWeek);
   tableBody.addEventListener("click", handleTableClick);
 }
-
 // --- Initial Page Load ---
 loadAndInitialize();
