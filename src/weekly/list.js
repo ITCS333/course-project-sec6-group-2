@@ -13,6 +13,7 @@
 
 // --- Element Selections ---
 // TODO: Select the section for the week list using its id 'week-list-section'.
+const weekListSection = document.getElementById('week-list-section');
 
 // --- Functions ---
 
@@ -43,6 +44,34 @@
  */
 function createWeekArticle(week) {
   // ... your implementation here ...
+
+  // Create article
+  const article = document.createElement("article");
+
+  // Create title
+  const title = document.createElement("h2");
+  title.textContent = week.title;
+
+  // Create start date
+  const startDate = document.createElement("p");
+  startDate.textContent = "Starts on: " + week.start_date;
+
+  // Create description
+  const description = document.createElement("p");
+  description.textContent = week.description;
+
+  // Create link
+  const link = document.createElement("a");
+  link.href = "details.html?id=" + week.id;
+  link.textContent = "View Details & Discussion";
+
+  // Append all elements to article
+  article.appendChild(title);
+  article.appendChild(startDate);
+  article.appendChild(description);
+  article.appendChild(link);
+
+  return article;
 }
 
 /**
@@ -60,6 +89,33 @@ function createWeekArticle(week) {
  */
 async function loadWeeks() {
   // ... your implementation here ...
+
+  try {
+
+    // Fetch data from API
+    const response = await fetch("./api/index.php");
+
+    // Convert to JSON
+    const result = await response.json();
+
+    // Check success
+    if (!result.success) {
+      console.error("API returned error");
+      return;
+    }
+
+    // Clear existing content
+    weekListSection.innerHTML = "";
+
+    // Loop through weeks
+    result.data.forEach(week => {
+      const article = createWeekArticle(week);
+      weekListSection.appendChild(article);
+    });
+
+  } catch (error) {
+    console.error("Error loading weeks:", error);
+  }
 }
 
 // --- Initial Page Load ---
