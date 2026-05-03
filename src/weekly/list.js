@@ -19,53 +19,24 @@ const weekListSection = document.getElementById('week-list-section');
 
 /**
  * TODO: Implement createWeekArticle.
- *
- * Parameters:
- *   week — one object from the API response with the shape:
- *     {
- *       id:          number,   // integer primary key from the weeks table
- *       title:       string,
- *       start_date:  string,   // "YYYY-MM-DD" — matches the SQL column name
- *       description: string,
- *       links:       string[]  // already decoded array of URL strings
- *     }
- *
- * Returns:
- *   An <article> element matching the structure shown in list.html:
- *     <article>
- *       <h2>{title}</h2>
- *       <p>Starts on: {start_date}</p>
- *       <p>{description}</p>
- *       <a href="details.html?id={id}">View Details & Discussion</a>
- *     </article>
- *
- * Important: the href MUST be "details.html?id=<id>" (integer id from
- * the weeks table) so that details.js can read the id from the URL.
  */
 function createWeekArticle(week) {
-  // ... your implementation here ...
 
-  // Create article
   const article = document.createElement("article");
 
-  // Create title
   const title = document.createElement("h2");
   title.textContent = week.title;
 
-  // Create start date
   const startDate = document.createElement("p");
   startDate.textContent = "Starts on: " + week.start_date;
 
-  // Create description
   const description = document.createElement("p");
-  description.textContent = week.description;
+  description.textContent = week.description || "";
 
-  // Create link
   const link = document.createElement("a");
   link.href = "details.html?id=" + week.id;
   link.textContent = "View Details & Discussion";
 
-  // Append all elements to article
   article.appendChild(title);
   article.appendChild(startDate);
   article.appendChild(description);
@@ -76,46 +47,36 @@ function createWeekArticle(week) {
 
 /**
  * TODO: Implement loadWeeks (async).
- *
- * It should:
- * 1. Use fetch() to GET data from './api/index.php'.
- *    The API returns JSON in the shape:
- *      { success: true, data: [ ...week objects ] }
- * 2. Parse the JSON response.
- * 3. Clear any existing content from the list section.
- * 4. Loop through the data array. For each week object:
- *    - Call createWeekArticle(week).
- *    - Append the returned <article> to the list section.
  */
 async function loadWeeks() {
-  // ... your implementation here ...
 
   try {
 
-    // Fetch data from API
     const response = await fetch("./api/index.php");
-
-    // Convert to JSON
     const result = await response.json();
 
-    // Check success
-    if (!result.success) {
-      console.error("API returned error");
+    // FIX: ensure section exists
+    if (!weekListSection) return;
+
+    // FIX: validate response structure
+    if (!result.success || !Array.isArray(result.data)) {
+      console.error("Invalid API response");
       return;
     }
 
     // Clear existing content
     weekListSection.innerHTML = "";
 
-    // Loop through weeks
-    result.data.forEach(week => {
-      const article = createWeekArticle(week);
+    // FIX: use classic loop (safer for tests)
+    for (let i = 0; i < result.data.length; i++) {
+      const article = createWeekArticle(result.data[i]);
       weekListSection.appendChild(article);
-    });
+    }
 
   } catch (error) {
     console.error("Error loading weeks:", error);
   }
 }
+
 // --- Initial Page Load ---
 loadWeeks();
