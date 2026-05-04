@@ -62,7 +62,6 @@ function getAssignmentIdFromURL() {
   const params = new URLSearchParams(window.location.search);
   return params.get("id");
 }
-
 function renderAssignmentDetails(assignment) {
   // ... your implementation here ...
 
@@ -72,7 +71,10 @@ function renderAssignmentDetails(assignment) {
 
   assignmentFilesList.innerHTML = "";
 
-  assignment.files.forEach(url => {
+  // ✅ Handle case where files might be null or not an array
+  const files = Array.isArray(assignment.files) ? assignment.files : [];
+
+  files.forEach(url => {
     const li = document.createElement("li");
 
     const a = document.createElement("a");
