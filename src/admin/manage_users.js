@@ -197,17 +197,18 @@ async function handleAddUser(event) {
 
         const result = await response.json();
 
-        if (!result.success) {
+        if (response.status === 201) {
+            await loadUsersAndInitialize();
+
+           
+            document.getElementById("user-name").value = "";
+            document.getElementById("user-email").value = "";
+            document.getElementById("default-password").value = "";
+            document.getElementById("is-admin").value = "0";
+        } else {
+            
             alert(result.message || "Failed to add user");
-            return;
         }
-
-        await loadUsersAndInitialize();
-
-        document.getElementById("user-name").value = "";
-        document.getElementById("user-email").value = "";
-        document.getElementById("default-password").value = "";
-        document.getElementById("is-admin").value = "0";
     } catch (error) {
         console.error(error);
         alert("Failed to add user");
