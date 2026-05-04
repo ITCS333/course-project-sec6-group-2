@@ -19,16 +19,15 @@
   Successful list response shape: { success: true, data: [ ...assignment objects ] }
   Each assignment object shape:
     {
-      id:          number,   // integer primary key from the assignments table
+      id:          number,
       title:       string,
-      due_date:    string,   // "YYYY-MM-DD" — matches the SQL column name
+      due_date:    string,
       description: string,
-      files:       string[]  // decoded array of URL strings
+      files:       string[]
     }
 */
 
 // --- Global Data Store ---
-// Holds the assignments currently displayed in the table.
 let assignments = [];
 
 // --- Element Selections ---
@@ -40,7 +39,12 @@ let tableBody = document.getElementById("assignments-tbody");
 
 // --- Functions ---
 
+/**
+ * TODO: Implement createAssignmentRow.
+ */
 function createAssignmentRow(assignment) {
+  // ... your implementation here ...
+
   let tr = document.createElement("tr");
 
   let td1 = document.createElement("td");
@@ -75,7 +79,12 @@ function createAssignmentRow(assignment) {
   return tr;
 }
 
+/**
+ * TODO: Implement renderTable.
+ */
 function renderTable() {
+  // ... your implementation here ...
+
   tableBody.innerHTML = "";
 
   for (let i = 0; i < assignments.length; i++) {
@@ -84,7 +93,12 @@ function renderTable() {
   }
 }
 
+/**
+ * TODO: Implement handleAddAssignment (async).
+ */
 async function handleAddAssignment(event) {
+  // ... your implementation here ...
+
   event.preventDefault();
 
   let title = document.getElementById("assignment-title").value;
@@ -130,7 +144,12 @@ async function handleAddAssignment(event) {
   }
 }
 
+/**
+ * TODO: Implement handleUpdateAssignment (async).
+ */
 async function handleUpdateAssignment(id, fields) {
+  // ... your implementation here ...
+
   let response = await fetch("./api/index.php", {
     method: "PUT",
     headers: {
@@ -164,7 +183,12 @@ async function handleUpdateAssignment(id, fields) {
   }
 }
 
+/**
+ * TODO: Implement handleTableClick (async).
+ */
 async function handleTableClick(event) {
+  // ... your implementation here ...
+
   let target = event.target;
 
   if (target.classList.contains("delete-btn")) {
@@ -200,7 +224,12 @@ async function handleTableClick(event) {
   }
 }
 
+/**
+ * TODO: Implement loadAndInitialize (async).
+ */
 async function loadAndInitialize() {
+  // ... your implementation here ...
+
   let response = await fetch("./api/index.php");
   let result = await response.json();
 
