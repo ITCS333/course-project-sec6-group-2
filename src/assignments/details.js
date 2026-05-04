@@ -20,11 +20,11 @@
   API base URL: ./api/index.php
   Assignment object shape returned by the API:
     {
-      id:          number,   // integer primary key from the assignments table
+      id:          number,
       title:       string,
-      due_date:    string,   // "YYYY-MM-DD" — matches the SQL column name
+      due_date:    string,
       description: string,
-      files:       string[]  // decoded array of URL strings
+      files:       string[]
     }
 
   Comment object shape returned by the API
@@ -47,123 +47,132 @@ let currentComments     = [];
 //   assignmentTitle, assignmentDueDate, assignmentDescription,
 //   assignmentFilesList, commentList, commentForm, newCommentInput.
 
+let assignmentTitle = document.getElementById("assignment-title");
+let assignmentDueDate = document.getElementById("assignment-due-date");
+let assignmentDescription = document.getElementById("assignment-description");
+let assignmentFilesList = document.getElementById("assignment-files-list");
+let commentList = document.getElementById("comment-list");
+let commentForm = document.getElementById("comment-form");
+let newCommentInput = document.getElementById("new-comment");
+
 // --- Functions ---
 
-/**
- * TODO: Implement getAssignmentIdFromURL.
- *
- * It should:
- * 1. Read window.location.search.
- * 2. Construct a URLSearchParams object from it.
- * 3. Return the value of the 'id' parameter (a string that represents
- *    the integer primary key of the assignment).
- */
 function getAssignmentIdFromURL() {
   // ... your implementation here ...
+  let params = new URLSearchParams(window.location.search);
+  return params.get("id");
 }
 
-/**
- * TODO: Implement renderAssignmentDetails.
- *
- * Parameters:
- *   assignment — the assignment object returned by the API (see shape above).
- *
- * It should:
- * 1. Set assignmentTitle.textContent       = assignment.title.
- * 2. Set assignmentDueDate.textContent     = "Due: " + assignment.due_date.
- *    (Note: use assignment.due_date, which matches the SQL column name.)
- * 3. Set assignmentDescription.textContent = assignment.description.
- * 4. Clear assignmentFilesList, then for each URL in assignment.files:
- *    - Create a <li> containing an <a href="{url}">{url}</a>.
- *    - Append the <li> to assignmentFilesList.
- *    (assignment.files is already a decoded string array from the API.)
- */
 function renderAssignmentDetails(assignment) {
   // ... your implementation here ...
+
+  assignmentTitle.textContent = assignment.title;
+  assignmentDueDate.textContent = "Due: " + assignment.due_date;
+  assignmentDescription.textContent = assignment.description;
+
+  assignmentFilesList.innerHTML = "";
+
+  for (let i = 0; i < assignment.files.length; i++) {
+    let li = document.createElement("li");
+
+    let a = document.createElement("a");
+    a.href = assignment.files[i];
+    a.textContent = assignment.files[i];
+
+    li.appendChild(a);
+    assignmentFilesList.appendChild(li);
+  }
 }
 
-/**
- * TODO: Implement createCommentArticle.
- *
- * Parameters:
- *   comment — one comment object from the API:
- *     { id, assignment_id, author, text, created_at }
- *
- * Returns an <article> element:
- *   <article>
- *     <p>{comment.text}</p>
- *     <footer>Posted by: {comment.author}</footer>
- *   </article>
- */
 function createCommentArticle(comment) {
   // ... your implementation here ...
+
+  let article = document.createElement("article");
+
+  let p = document.createElement("p");
+  p.textContent = comment.text;
+
+  let footer = document.createElement("footer");
+  footer.textContent = "Posted by: " + comment.author;
+
+  article.appendChild(p);
+  article.appendChild(footer);
+
+  return article;
 }
 
-/**
- * TODO: Implement renderComments.
- *
- * It should:
- * 1. Clear commentList (set innerHTML to "").
- * 2. Loop through currentComments.
- * 3. For each comment, call createCommentArticle(comment) and
- *    append the result to commentList.
- */
 function renderComments() {
   // ... your implementation here ...
+
+  commentList.innerHTML = "";
+
+  for (let i = 0; i < currentComments.length; i++) {
+    let article = createCommentArticle(currentComments[i]);
+    commentList.appendChild(article);
+  }
 }
 
-/**
- * TODO: Implement handleAddComment (async).
- *
- * This is the event handler for commentForm's 'submit' event.
- * It should:
- * 1. Call event.preventDefault().
- * 2. Read and trim the value from newCommentInput (#new-comment).
- * 3. If the value is empty, return early (do nothing).
- * 4. Send a POST to './api/index.php?action=comment' with the body:
- *      {
- *        assignment_id: currentAssignmentId,   // integer
- *        author:        "Student",             // hardcoded for this exercise
- *        text:          commentText
- *      }
- *    The API inserts a row into the comments_assignment table.
- * 5. On success (result.success === true):
- *    - Push the new comment object (from result.data) onto
- *      currentComments.
- *    - Call renderComments() to refresh the list.
- *    - Clear newCommentInput.
- */
 async function handleAddComment(event) {
   // ... your implementation here ...
+
+  event.preventDefault();
+
+  let text = newCommentInput.value.trim();
+
+  if (text === "") return;
+
+  let response = await fetch("./api/index.php?action=comment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      assignment_id: currentAssignmentId,
+      author: "Student",
+      text: text
+    })
+  });
+
+  let result = await response.json();
+
+  if (result.success) {
+    currentComments.push(result.data);
+    renderComments();
+    newCommentInput.value = "";
+  }
 }
 
-/**
- * TODO: Implement initializePage (async).
- *
- * It should:
- * 1. Call getAssignmentIdFromURL() and store the result in
- *    currentAssignmentId.
- * 2. If currentAssignmentId is null or empty, set
- *    assignmentTitle.textContent = "Assignment not found." and return.
- * 3. Fetch both the assignment details and its comments in parallel using
- *    Promise.all:
- *      - Assignment: GET ./api/index.php?id={currentAssignmentId}
- *                    Response: { success: true, data: { ...assignment object } }
- *      - Comments:   GET ./api/index.php?action=comments&assignment_id={currentAssignmentId}
- *                    Response: { success: true, data: [ ...comment objects ] }
- *    Comments are stored in the comments_assignment table
- *    (columns: id, assignment_id, author, text, created_at).
- * 4. Store the comments array in currentComments
- *    (use an empty array if none exist).
- * 5. If the assignment was found:
- *    - Call renderAssignmentDetails(assignment).
- *    - Call renderComments().
- *    - Attach the 'submit' listener to commentForm (calls handleAddComment).
- * 6. If the assignment was not found:
- *    - Set assignmentTitle.textContent = "Assignment not found."
- */
 async function initializePage() {
   // ... your implementation here ...
+
+  currentAssignmentId = getAssignmentIdFromURL();
+
+  if (!currentAssignmentId) {
+    assignmentTitle.textContent = "Assignment not found.";
+    return;
+  }
+
+  let [assignmentRes, commentsRes] = await Promise.all([
+    fetch(`./api/index.php?id=${currentAssignmentId}`),
+    fetch(`./api/index.php?action=comments&assignment_id=${currentAssignmentId}`)
+  ]);
+
+  let assignmentData = await assignmentRes.json();
+  let commentsData = await commentsRes.json();
+
+  if (commentsData.success) {
+    currentComments = commentsData.data;
+  } else {
+    currentComments = [];
+  }
+
+  if (assignmentData.success) {
+    renderAssignmentDetails(assignmentData.data);
+    renderComments();
+    commentForm.addEventListener("submit", handleAddComment);
+  } else {
+    assignmentTitle.textContent = "Assignment not found.";
+  }
 }
 
 // --- Initial Page Load ---
