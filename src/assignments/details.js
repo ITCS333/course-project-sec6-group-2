@@ -47,19 +47,19 @@ let currentComments     = [];
 //   assignmentTitle, assignmentDueDate, assignmentDescription,
 //   assignmentFilesList, commentList, commentForm, newCommentInput.
 
-let assignmentTitle = document.getElementById("assignment-title");
-let assignmentDueDate = document.getElementById("assignment-due-date");
-let assignmentDescription = document.getElementById("assignment-description");
-let assignmentFilesList = document.getElementById("assignment-files-list");
-let commentList = document.getElementById("comment-list");
-let commentForm = document.getElementById("comment-form");
-let newCommentInput = document.getElementById("new-comment");
+const assignmentTitle = document.getElementById("assignment-title");
+const assignmentDueDate = document.getElementById("assignment-due-date");
+const assignmentDescription = document.getElementById("assignment-description");
+const assignmentFilesList = document.getElementById("assignment-files-list");
+const commentList = document.getElementById("comment-list");
+const commentForm = document.getElementById("comment-form");
+const newCommentInput = document.getElementById("new-comment");
 
 // --- Functions ---
 
 function getAssignmentIdFromURL() {
   // ... your implementation here ...
-  let params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   return params.get("id");
 }
 
@@ -72,27 +72,27 @@ function renderAssignmentDetails(assignment) {
 
   assignmentFilesList.innerHTML = "";
 
-  for (let i = 0; i < assignment.files.length; i++) {
-    let li = document.createElement("li");
+  assignment.files.forEach(url => {
+    const li = document.createElement("li");
 
-    let a = document.createElement("a");
-    a.href = assignment.files[i];
-    a.textContent = assignment.files[i];
+    const a = document.createElement("a");
+    a.href = url;
+    a.textContent = url;
 
     li.appendChild(a);
     assignmentFilesList.appendChild(li);
-  }
+  });
 }
 
 function createCommentArticle(comment) {
   // ... your implementation here ...
 
-  let article = document.createElement("article");
+  const article = document.createElement("article");
 
-  let p = document.createElement("p");
+  const p = document.createElement("p");
   p.textContent = comment.text;
 
-  let footer = document.createElement("footer");
+  const footer = document.createElement("footer");
   footer.textContent = "Posted by: " + comment.author;
 
   article.appendChild(p);
@@ -106,10 +106,10 @@ function renderComments() {
 
   commentList.innerHTML = "";
 
-  for (let i = 0; i < currentComments.length; i++) {
-    let article = createCommentArticle(currentComments[i]);
+  currentComments.forEach(comment => {
+    const article = createCommentArticle(comment);
     commentList.appendChild(article);
-  }
+  });
 }
 
 async function handleAddComment(event) {
@@ -117,23 +117,23 @@ async function handleAddComment(event) {
 
   event.preventDefault();
 
-  let text = newCommentInput.value.trim();
+  const text = newCommentInput.value.trim();
 
   if (text === "") return;
 
-  let response = await fetch("./api/index.php?action=comment", {
+  const response = await fetch("./api/index.php?action=comment", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      assignment_id: currentAssignmentId,
+      assignment_id: Number(currentAssignmentId),
       author: "Student",
       text: text
     })
   });
 
-  let result = await response.json();
+  const result = await response.json();
 
   if (result.success) {
     currentComments.push(result.data);
@@ -147,24 +147,20 @@ async function initializePage() {
 
   currentAssignmentId = getAssignmentIdFromURL();
 
-  if (!currentAssignmentId) {
+  if (!currentAssignmentId || isNaN(currentAssignmentId)) {
     assignmentTitle.textContent = "Assignment not found.";
     return;
   }
 
-  let [assignmentRes, commentsRes] = await Promise.all([
+  const [assignmentRes, commentsRes] = await Promise.all([
     fetch(`./api/index.php?id=${currentAssignmentId}`),
     fetch(`./api/index.php?action=comments&assignment_id=${currentAssignmentId}`)
   ]);
 
-  let assignmentData = await assignmentRes.json();
-  let commentsData = await commentsRes.json();
+  const assignmentData = await assignmentRes.json();
+  const commentsData = await commentsRes.json();
 
-  if (commentsData.success) {
-    currentComments = commentsData.data;
-  } else {
-    currentComments = [];
-  }
+  currentComments = commentsData.success ? commentsData.data : [];
 
   if (assignmentData.success) {
     renderAssignmentDetails(assignmentData.data);
