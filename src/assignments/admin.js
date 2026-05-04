@@ -33,135 +33,184 @@ let assignments = [];
 
 // --- Element Selections ---
 // TODO: Select the assignment form by id 'assignment-form'.
+let form = document.getElementById("assignment-form");
 
 // TODO: Select the assignments table body by id 'assignments-tbody'.
+let tableBody = document.getElementById("assignments-tbody");
 
 // --- Functions ---
 
-/**
- * TODO: Implement createAssignmentRow.
- *
- * Parameters:
- *   assignment — one assignment object with shape:
- *     { id, title, due_date, description, files }
- *
- * Returns a <tr> element with four <td>s:
- *   1. title
- *   2. due_date   (the "YYYY-MM-DD" string — use due_date, not dueDate)
- *   3. description
- *   4. Actions — two buttons:
- *        <button class="edit-btn"   data-id="{id}">Edit</button>
- *        <button class="delete-btn" data-id="{id}">Delete</button>
- *      The data-id holds the integer primary key from the assignments table.
- */
 function createAssignmentRow(assignment) {
-  // ... your implementation here ...
+  let tr = document.createElement("tr");
+
+  let td1 = document.createElement("td");
+  td1.textContent = assignment.title;
+
+  let td2 = document.createElement("td");
+  td2.textContent = assignment.due_date;
+
+  let td3 = document.createElement("td");
+  td3.textContent = assignment.description;
+
+  let td4 = document.createElement("td");
+
+  let editBtn = document.createElement("button");
+  editBtn.textContent = "Edit";
+  editBtn.className = "edit-btn";
+  editBtn.dataset.id = assignment.id;
+
+  let deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "Delete";
+  deleteBtn.className = "delete-btn";
+  deleteBtn.dataset.id = assignment.id;
+
+  td4.appendChild(editBtn);
+  td4.appendChild(deleteBtn);
+
+  tr.appendChild(td1);
+  tr.appendChild(td2);
+  tr.appendChild(td3);
+  tr.appendChild(td4);
+
+  return tr;
 }
 
-/**
- * TODO: Implement renderTable.
- *
- * It should:
- * 1. Clear the assignments table body (set innerHTML to "").
- * 2. Loop through the global `assignments` array.
- * 3. For each assignment, call createAssignmentRow(assignment) and
- *    append the <tr> to the table body.
- */
 function renderTable() {
-  // ... your implementation here ...
+  tableBody.innerHTML = "";
+
+  for (let i = 0; i < assignments.length; i++) {
+    let row = createAssignmentRow(assignments[i]);
+    tableBody.appendChild(row);
+  }
 }
 
-/**
- * TODO: Implement handleAddAssignment (async).
- *
- * This is the event handler for the form's 'submit' event.
- * It should:
- * 1. Call event.preventDefault().
- * 2. Read values from:
- *      - #assignment-title       → title (string)
- *      - #assignment-due-date    → due_date (string, "YYYY-MM-DD")
- *      - #assignment-description → description (string)
- *      - #assignment-files       → split by newlines (\n) and filter
- *                                  empty strings to produce a files array.
- * 3. Check if the submit button (#add-assignment) has a data-edit-id
- *    attribute.
- *    - If it does, call handleUpdateAssignment() with that id and the
- *      field values.
- *    - If it does not, send a POST to './api/index.php' with the body:
- *        { title, due_date, description, files }
- *      On success (result.success === true):
- *        - Add the new assignment (with the id from result.id) to the
- *          global `assignments` array.
- *        - Call renderTable().
- *        - Reset the form.
- */
 async function handleAddAssignment(event) {
-  // ... your implementation here ...
+  event.preventDefault();
+
+  let title = document.getElementById("assignment-title").value;
+  let due_date = document.getElementById("assignment-due-date").value;
+  let description = document.getElementById("assignment-description").value;
+  let filesText = document.getElementById("assignment-files").value;
+
+  let files = filesText.split("\n").filter(f => f.trim() !== "");
+
+  let button = document.getElementById("add-assignment");
+
+  if (button.dataset.editId) {
+    await handleUpdateAssignment(button.dataset.editId, {
+      title,
+      due_date,
+      description,
+      files
+    });
+    return;
+  }
+
+  let response = await fetch("./api/index.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ title, due_date, description, files })
+  });
+
+  let result = await response.json();
+
+  if (result.success) {
+    assignments.push({
+      id: result.id,
+      title,
+      due_date,
+      description,
+      files
+    });
+
+    renderTable();
+    form.reset();
+  }
 }
 
-/**
- * TODO: Implement handleUpdateAssignment (async).
- *
- * Parameters:
- *   id     — the integer primary key of the assignment being edited.
- *   fields — object with { title, due_date, description, files }.
- *
- * It should:
- * 1. Send a PUT to './api/index.php' with the body:
- *      { id, title, due_date, description, files }
- * 2. On success:
- *    - Update the matching entry in the global `assignments` array.
- *    - Call renderTable().
- *    - Reset the form.
- *    - Restore the submit button text to "Add Assignment" and remove
- *      its data-edit-id attribute.
- */
 async function handleUpdateAssignment(id, fields) {
-  // ... your implementation here ...
+  let response = await fetch("./api/index.php", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      id: id,
+      title: fields.title,
+      due_date: fields.due_date,
+      description: fields.description,
+      files: fields.files
+    })
+  });
+
+  let result = await response.json();
+
+  if (result.success) {
+
+    for (let i = 0; i < assignments.length; i++) {
+      if (assignments[i].id == id) {
+        assignments[i] = { id, ...fields };
+      }
+    }
+
+    renderTable();
+    form.reset();
+
+    let button = document.getElementById("add-assignment");
+    button.textContent = "Add Assignment";
+    delete button.dataset.editId;
+  }
 }
 
-/**
- * TODO: Implement handleTableClick (async).
- *
- * This is a delegated click listener on the assignments table body.
- * It should:
- * 1. If event.target has class "delete-btn":
- *    a. Read the integer id from event.target.dataset.id.
- *    b. Send a DELETE to './api/index.php?id=<id>'.
- *    c. On success, remove the assignment from the global `assignments`
- *       array and call renderTable().
- *
- * 2. If event.target has class "edit-btn":
- *    a. Read the integer id from event.target.dataset.id.
- *    b. Find the matching assignment in the global `assignments` array.
- *    c. Populate the form fields:
- *         #assignment-title       ← assignment.title
- *         #assignment-due-date    ← assignment.due_date
- *         #assignment-description ← assignment.description
- *         #assignment-files       ← assignment.files joined with newlines (\n)
- *    d. Change the submit button (#add-assignment) text to
- *       "Update Assignment" and set its data-edit-id attribute to the
- *       assignment's id.
- */
 async function handleTableClick(event) {
-  // ... your implementation here ...
+  let target = event.target;
+
+  if (target.classList.contains("delete-btn")) {
+
+    let id = target.dataset.id;
+
+    let response = await fetch(`./api/index.php?id=${id}`, {
+      method: "DELETE"
+    });
+
+    let result = await response.json();
+
+    if (result.success) {
+      assignments = assignments.filter(a => a.id != id);
+      renderTable();
+    }
+  }
+
+  if (target.classList.contains("edit-btn")) {
+
+    let id = target.dataset.id;
+
+    let assignment = assignments.find(a => a.id == id);
+
+    document.getElementById("assignment-title").value = assignment.title;
+    document.getElementById("assignment-due-date").value = assignment.due_date;
+    document.getElementById("assignment-description").value = assignment.description;
+    document.getElementById("assignment-files").value = assignment.files.join("\n");
+
+    let button = document.getElementById("add-assignment");
+    button.textContent = "Update Assignment";
+    button.dataset.editId = id;
+  }
 }
 
-/**
- * TODO: Implement loadAndInitialize (async).
- *
- * It should:
- * 1. Send a GET to './api/index.php'.
- *    Response shape: { success: true, data: [ ...assignment objects ] }
- * 2. Store the data array in the global `assignments` variable.
- * 3. Call renderTable() to populate the table.
- * 4. Attach the 'submit' event listener to the assignment form
- *    (calls handleAddAssignment).
- * 5. Attach a 'click' event listener to the assignments table body
- *    (calls handleTableClick — event delegation for edit and delete).
- */
 async function loadAndInitialize() {
-  // ... your implementation here ...
+  let response = await fetch("./api/index.php");
+  let result = await response.json();
+
+  if (result.success) {
+    assignments = result.data;
+    renderTable();
+  }
+
+  form.addEventListener("submit", handleAddAssignment);
+  tableBody.addEventListener("click", handleTableClick);
 }
 
 // --- Initial Page Load ---
