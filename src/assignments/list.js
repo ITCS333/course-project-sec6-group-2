@@ -59,25 +59,17 @@ function createAssignmentArticle(assignment) {
 async function loadAssignments() {
   // ... your implementation here ...
 
-  try {
-    const response = await fetch("./api/index.php");
-    const result = await response.json();
+  const response = await fetch("./api/index.php");
+  const result = await response.json();
 
-    if (!result.success) {
-      console.error("API error");
-      return;
-    }
+  if (!result.success) return;
 
-    assignmentListSection.innerHTML = "";
+  assignmentListSection.innerHTML = "";
 
-    result.data.forEach(assignment => {
-      const article = createAssignmentArticle(assignment);
-      assignmentListSection.appendChild(article);
-    });
-
-  } catch (error) {
-    console.error("Error loading assignments:", error);
-  }
+  result.data.forEach(assignment => {
+    const article = createAssignmentArticle(assignment);
+    assignmentListSection.appendChild(article);
+  });
 }
 
 // --- Initial Page Load ---
