@@ -38,32 +38,41 @@ let users = [];
  *    - A "Delete" button with class "delete-btn" and a data-id attribute set to the user's id.
  */
 function createUserRow(user) {
+    // Step 0: Create the <tr> element that will hold the user's row.
     const tr = document.createElement("tr");
 
+    // Step 1: A <td> for the user's name.
     const nameTd = document.createElement("td");
     nameTd.textContent = user.name;
 
+    // Step 2: A <td> for the user's email.
     const emailTd = document.createElement("td");
     emailTd.textContent = user.email;
 
+    // Step 3: A <td> showing admin status — "Yes" if is_admin === 1, otherwise "No".
     const adminTd = document.createElement("td");
     adminTd.textContent = Number(user.is_admin) === 1 ? "Yes" : "No";
 
+    // Step 4: A <td> containing the Edit and Delete buttons.
     const actionsTd = document.createElement("td");
 
+    // Step 4a: "Edit" button with class "edit-btn" and data-id = user's id.
     const editBtn = document.createElement("button");
     editBtn.textContent = "Edit";
     editBtn.className = "edit-btn";
     editBtn.dataset.id = user.id;
 
+    // Step 4b: "Delete" button with class "delete-btn" and data-id = user's id.
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
     deleteBtn.className = "delete-btn";
     deleteBtn.dataset.id = user.id;
 
+    // Append the two buttons inside the actions <td>.
     actionsTd.appendChild(editBtn);
     actionsTd.appendChild(deleteBtn);
 
+    // Append all <td> cells to the <tr> in the order they appear in the table.
     tr.appendChild(nameTd);
     tr.appendChild(emailTd);
     tr.appendChild(adminTd);
@@ -81,7 +90,10 @@ function createUserRow(user) {
  * 3. For each user, call createUserRow and append the returned <tr> to userTableBody.
  */
 function renderTable(list) {
+    // Step 1: Clear the current content of the userTableBody.
     userTableBody.innerHTML = "";
+
+    // Step 2 & 3: Loop through users; for each user, create a row and append it.
     list.forEach(user => {
         userTableBody.appendChild(createUserRow(user));
     });
@@ -102,56 +114,56 @@ function renderTable(list) {
  * 5. On success, show an alert: "Password updated successfully!" and clear all three inputs.
  * 6. On failure, show the error message returned by the API.
  */
-async function handleChangePassword(event) {
+function handleChangePassword(event) {
+    // Step 1: Prevent the form's default submission behaviour.
     event.preventDefault();
 
-    const currentPassword = document.getElementById("current-password").value.trim();
-    const newPassword     = document.getElementById("new-password").value.trim();
-    const confirmPassword = document.getElementById("confirm-password").value.trim();
+    // Step 2: Get the values from the three password inputs.
+    const currentPassword = document.getElementById("current-password").value;
+    const newPassword     = document.getElementById("new-password").value;
+    const confirmPassword = document.getElementById("confirm-password").value;
 
+    // Step 3: Client-side validation — passwords must match.
     if (newPassword !== confirmPassword) {
         alert("Passwords do not match.");
         return;
     }
 
+    // Step 3: Client-side validation — minimum length 8 characters.
     if (newPassword.length < 8) {
         alert("Password must be at least 8 characters.");
         return;
     }
 
-    // The logged-in admin's id is persisted by login.js to sessionStorage on success.
-    const loggedInUserId = sessionStorage.getItem("userId");
-    if (!loggedInUserId) {
-        alert("You are not logged in. Please log in again.");
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}?action=change_password`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id: Number(loggedInUserId),
-                current_password: currentPassword,
-                new_password: newPassword
-            })
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
+    // Step 4: Send POST request to the change_password endpoint.
+    // The 'id' of the currently logged-in admin is determined server-side from the session.
+    fetch(`${API_BASE_URL}?action=change_password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // Step 5: On success, show success alert.
+            alert("Password updated successfully!");
+        } else {
+            // Step 6: On failure, show the error message returned by the API.
             alert(result.message || "Failed to update password");
-            return;
         }
-
-        alert("Password updated successfully!");
-        document.getElementById("current-password").value = "";
-        document.getElementById("new-password").value = "";
-        document.getElementById("confirm-password").value = "";
-    } catch (error) {
+    })
+    .catch(error => {
         console.error(error);
         alert("Failed to update password");
-    }
+    });
+
+    // Step 5: Clear all three inputs after submission.
+    document.getElementById("current-password").value = "";
+    document.getElementById("new-password").value = "";
+    document.getElementById("confirm-password").value = "";
 }
 
 /**
@@ -170,49 +182,55 @@ async function handleChangePassword(event) {
  * 6. Clear the form inputs on success.
  * 7. On failure, show the error message returned by the API.
  */
-async function handleAddUser(event) {
+function handleAddUser(event) {
+    // Step 1: Prevent the form's default submission behaviour.
     event.preventDefault();
 
+    // Step 2: Get the values from the four input fields.
     const name     = document.getElementById("user-name").value.trim();
     const email    = document.getElementById("user-email").value.trim();
-    const password = document.getElementById("default-password").value.trim();
+    const password = document.getElementById("default-password").value;
     const isAdmin  = document.getElementById("is-admin").value;
 
+    // Step 3: Client-side validation — required fields must not be empty.
     if (!name || !email || !password) {
         alert("Please fill out all required fields.");
         return;
     }
 
+    // Step 3: Client-side validation — minimum password length of 8 characters.
     if (password.length < 8) {
         alert("Password must be at least 8 characters.");
         return;
     }
 
-    try {
-        const response = await fetch(API_BASE_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, password, is_admin: Number(isAdmin) })
-        });
-
-        const result = await response.json();
-
+    // Step 4: Send POST request with the new user's data.
+    fetch(API_BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, is_admin: Number(isAdmin) })
+    })
+    .then(response => {
+        // Step 5: On success (HTTP 201), re-fetch the full user list so the
+        // table reflects the new record from the database.
         if (response.status === 201) {
-            await loadUsersAndInitialize();
-
-           
+            // Step 6: Clear the form inputs on success.
             document.getElementById("user-name").value = "";
             document.getElementById("user-email").value = "";
             document.getElementById("default-password").value = "";
             document.getElementById("is-admin").value = "0";
+            loadUsersAndInitialize();
         } else {
-            
-            alert(result.message || "Failed to add user");
+            // Step 7: On failure, show the error message returned by the API.
+            return response.json().then(result => {
+                alert(result.message || "Failed to add user");
+            });
         }
-    } catch (error) {
+    })
+    .catch(error => {
         console.error(error);
         alert("Failed to add user");
-    }
+    });
 }
 
 /**
@@ -230,39 +248,45 @@ async function handleAddUser(event) {
  *    - (Optional) Populate an edit form or prompt with the user's current data
  *      and send a PUT request to '../api/index.php' with the updated fields.
  */
-async function handleTableClick(event) {
+function handleTableClick(event) {
     const target = event.target;
 
+    // Step 1 & 2: If the clicked element is a "delete-btn".
     if (target.classList.contains("delete-btn")) {
+        // Step 2a: Get the user's database id from the button's data-id.
         const userId = target.dataset.id;
 
-        if (!confirm("Are you sure you want to delete this user?")) return;
-
-        try {
-            const response = await fetch(`${API_BASE_URL}?id=${userId}`, {
-                method: "DELETE"
-            });
-            const result = await response.json();
-
-            if (!result.success) {
+        // Step 2b: Send a DELETE request to the API.
+        fetch(`${API_BASE_URL}?id=${userId}`, {
+            method: "DELETE"
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // Step 2c: On success, remove the user from the local 'users'
+                // array and re-render the table.
+                users = users.filter(u => String(u.id) !== String(userId));
+                renderTable(users);
+            } else {
+                // Step 2d: On failure, show the error message returned by the API.
                 alert(result.message || "Failed to delete user");
-                return;
             }
-
-            users = users.filter(u => String(u.id) !== String(userId));
-            renderTable(users);
-        } catch (error) {
+        })
+        .catch(error => {
             console.error(error);
             alert("Error deleting user");
-        }
+        });
         return;
     }
 
+    // Step 3: If the clicked element is an "edit-btn".
     if (target.classList.contains("edit-btn")) {
+        // Step 3a: Get the user's id from the button's data-id.
         const userId = target.dataset.id;
         const current = users.find(u => String(u.id) === String(userId));
         if (!current) return;
 
+        // Step 3b: Prompt the admin for the new values (Optional per the TODO).
         const newName = prompt("Name:", current.name);
         if (newName === null) return;
         const newEmail = prompt("Email:", current.email);
@@ -270,29 +294,30 @@ async function handleTableClick(event) {
         const newIsAdmin = prompt("Admin? (0 = No, 1 = Yes):", current.is_admin);
         if (newIsAdmin === null) return;
 
-        try {
-            const response = await fetch(API_BASE_URL, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: Number(userId),
-                    name: newName.trim(),
-                    email: newEmail.trim(),
-                    is_admin: Number(newIsAdmin)
-                })
-            });
-            const result = await response.json();
-
-            if (!result.success) {
+        // Step 3c: Send a PUT request to update the user.
+        fetch(API_BASE_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: Number(userId),
+                name: newName.trim(),
+                email: newEmail.trim(),
+                is_admin: Number(newIsAdmin)
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // On success, re-fetch the full user list to reflect the update.
+                loadUsersAndInitialize();
+            } else {
                 alert(result.message || "Failed to update user");
-                return;
             }
-
-            await loadUsersAndInitialize();
-        } catch (error) {
+        })
+        .catch(error => {
             console.error(error);
             alert("Error updating user");
-        }
+        });
     }
 }
 
@@ -308,17 +333,22 @@ async function handleTableClick(event) {
  *    (This filters the client-side cache only; no extra API call is needed.)
  */
 function handleSearch() {
-    const term = searchInput.value.trim().toLowerCase();
+    // Step 1: Get the search term and convert to lowercase.
+    const term = searchInput.value.toLowerCase();
 
+    // Step 2: If empty, render all users.
     if (!term) {
         renderTable(users);
         return;
     }
 
+    // Step 3: Filter the local 'users' array by name or email (case-insensitive).
     const filtered = users.filter(u =>
         u.name.toLowerCase().includes(term) ||
         u.email.toLowerCase().includes(term)
     );
+
+    // Step 4: Render the filtered list (no API call needed — uses cache).
     renderTable(filtered);
 }
 
@@ -340,34 +370,35 @@ function handleSearch() {
  * 6. Call renderTable(users) to update the view.
  */
 function handleSort(event) {
+    // Step 1: Identify which <th> was clicked.
     const th    = event.currentTarget;
     const index = th.cellIndex;
 
+    // Step 2: Map the column index to a property name on the user object.
     const columnMap = { 0: 'name', 1: 'email', 2: 'is_admin' };
     const property  = columnMap[index];
 
-    // The "Actions" column isn't sortable.
+    // The "Actions" column (index 3) isn't sortable.
     if (!property) return;
 
-    // Toggle direction; default to 'asc' on first click.
+    // Step 3: Toggle sort direction. Default to 'asc' on first click.
     const newDir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
-
-    // Clear direction on every other header so only one is marked at a time.
-    tableHeaders.forEach(header => {
-        if (header !== th) delete header.dataset.sortDir;
-    });
     th.dataset.sortDir = newDir;
 
+    // Step 4 & 5: Sort the local 'users' array in place, respecting direction.
     users.sort((a, b) => {
         let cmp;
         if (property === 'is_admin') {
+            // For 'is_admin', compare as numbers.
             cmp = Number(a.is_admin) - Number(b.is_admin);
         } else {
+            // For 'name' and 'email', use localeCompare for string comparison.
             cmp = String(a[property]).localeCompare(String(b[property]));
         }
         return newDir === 'asc' ? cmp : -cmp;
     });
 
+    // Step 6: Re-render the table with the newly sorted users array.
     renderTable(users);
 }
 
@@ -390,24 +421,28 @@ function handleSort(event) {
  */
 async function loadUsersAndInitialize() {
     try {
+        // Step 1: Send a GET request to the API.
         const response = await fetch(API_BASE_URL);
 
+        // Step 2: Check if the response is ok; if not, log and alert.
         if (!response.ok) {
             console.error(`HTTP error: ${response.status}`);
             alert("Failed to load users");
             return;
         }
 
+        // Step 3: Parse the JSON response.
         const result = await response.json();
 
-        if (!result.success) {
-            alert(result.message || "Failed to load users");
-            return;
-        }
-
+        // Step 4: Assign the data array to the global 'users' variable.
         users = result.data;
+
+        // Step 5: Render the table.
         renderTable(users);
 
+        // Step 6: Attach all event listeners only on the first call.
+        // The _listenersAttached flag ensures we don't attach them again
+        // when loadUsersAndInitialize is called after add/edit/delete.
         if (!loadUsersAndInitialize._listenersAttached) {
             passwordForm.addEventListener("submit", handleChangePassword);
             addUserForm.addEventListener("submit", handleAddUser);
