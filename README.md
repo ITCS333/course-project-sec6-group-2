@@ -25,7 +25,7 @@ The website covers five functional areas, each assigned to one team member.
 | 2 | Course Resources |202204010 |Hassan-cp |
 | 3 | Weekly Breakdown |202008213 |Khalid-git-cloud |
 | 4 | Assignments |202008213 |Khalid-git-cloud |
-| 5 | Discussion Board |202301203 |1ffocus |
+| 5 | Discussion Board | | |
 
 ---
 
